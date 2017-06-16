@@ -17,7 +17,7 @@ port = 5555
 # Generowanie klucza RSA
 def rsagen():
     print("Trwa generowanie klucza!")
-    return rsa.newkeys(2048)
+    return rsa.newkeys(512)
 
 
 # obsługa klienta
@@ -32,11 +32,13 @@ def client(host):
         'pubkey': pubkey
     }
     s.send(pickle.dumps(data))
+    print(data)
 
     while True:
         data = s.recv(1024)
         info = pickle.loads(data)
-        print("{0} > {1}".format(info['nickname'], rsa.decrypt(info['message'], privkey).decode('utf8')))
+        message = rsa.decrypt(info['message'], privkey)
+        print("{0} > {1}".format(info['nickname'], message.decode('utf8')))
         message = input("Me > ")
         data = {
             'nickname': nickname,
@@ -44,6 +46,7 @@ def client(host):
             'pubkey': pubkey
         }
         s.send(pickle.dumps(data))
+        print(pickle.dumps(data))
 
 
 # obsługa serwera
@@ -64,7 +67,8 @@ def server():
         else:
             data = conn.recv(1024)
             info = pickle.loads(data)
-            print("{0} > {1}".format(info['nickname'], rsa.decrypt(info['message'], privkey).decode('utf8')))
+            message = rsa.decrypt(info['message'], privkey)
+            print("{0} > {1}".format(info['nickname'], message.decode('utf8')))
             message = input("Me > ")
             data = {
                 'nickname': nickname,
